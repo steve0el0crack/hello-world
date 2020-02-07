@@ -1,0 +1,17 @@
+import random
+
+espanol = open('aleman_dic.txt','r')
+aleman = open('aleman_div_espa.txt','r') 
+esp=espanol.read().split('\n')
+ale=aleman.read().split("\n")
+puntaje=0
+
+while True == True:
+	crear = (random.randinnt(0,len(ale)))
+	respuesta=raw_input(">>" + ale(crear)))
+	if respuesta == espa(crear):
+		print correcto
+		puntaje=puntaje + 1
+	else: 
+		print "mal"
+		puntaje=puntaje - 1 
