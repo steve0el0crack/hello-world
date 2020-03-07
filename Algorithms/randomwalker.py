@@ -9,6 +9,9 @@ def present(x):
 def presentarray(array):
 	map(lambda x: present(x), array)
 
+def presentwl(x):
+	print(x),
+
 def addkey(dicc, key, value):
 	dicc[key] = value
 	present(dicc)
@@ -55,27 +58,26 @@ def action(origin, paceq):
 		print "Pace " + str(pace + 1) + " -------> " + str(origincopy)
 	finalpos = origincopy
 	return theway
-theway = action(origin, pacenum)	
-print "//////// THE WAY //////////"
-present(theway)		#THE WAY						
-print "///////////////////////////"
+theway = action(origin, pacenum)						#EVERY POSITION WALKED		
 
 # INITIALIZING  WORLD
 map(lambda history: getindexs(history), theway)
 map(lambda tosort: tosort.sort(), [xs, ys])	
-print xs
-print ys
 xlowest = xs[0]
 xmaximal = xs[-1]
 ylowest = ys[0]
 ymaximal = ys[-1]
-print "The lowest X / Y: " + str(xlowest) + " " + str(ylowest)
-print "The maximal X / Y: " + str(xmaximal) + " " + str(ymaximal) 
-		 
+print "X range: " + "[" + str(xlowest) + " - " + str(xmaximal) + "]"
+print "Y range: " + "[" + str(ylowest) + " - " + str(ymaximal) + "]"
 wdims = [xmaximal - xlowest + 1, ymaximal - ylowest + 1]	#DIMENSIONS of world BASED on THE WAY WALKED 	
 print str(wdims[0]) + " x " + str(wdims[1])
+print "EDGES --------> " + str((xmaximal, ymaximal)) + " - " + str((xlowest, ylowest))
+
+def addrohposition(array, y, x):
+	array.append({":y" : y, ":x" : x, ":ID" : " - "})
 tmpworld = []							#ROH WORLD
-map(lambda reihe: map(lambda column: map(lambda pair: tmpworld.append(pair),[{":y" : reihe, ":x" : column}]), range(xlowest, wdims[0])), range(ylowest, wdims[1]))
+map(lambda y: map(lambda x: addrohposition(tmpworld, y, x), range(xlowest, xmaximal + 1)), range(ylowest, ymaximal + 1))
+
 
 world = []
 for ydimension in range(wdims[1]):
@@ -86,6 +88,21 @@ print "%%%%%%%%%% THE WORLD %%%%%%%%%%"
 presentarray(world)						#MATRIXed WORLD
 print "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 
+#PAINTING THE WORLD						ORIGIN = 0 / NOT WALKED = - / WALKED X
+
+#world[theway[0]][]
+for reihe in world:
+	for pair in reihe:
+		presentwl(pair[":ID"])
+	print ""
+
+
+
+
+
+#for 
+#for x in range(10):
+#	print(x),
 
 def worldfilter(pace):
 	print "MAKING FILTER"
