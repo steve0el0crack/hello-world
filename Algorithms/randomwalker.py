@@ -2,6 +2,9 @@ import sys
 import random
 import functools
 import itertools
+from termcolor import colored, cprint
+
+cprint('Hello, World!', 'green', 'on_red')
 
 #FUNCTION FRAMEWORK
 def present(x):
@@ -111,7 +114,7 @@ def detectorigin(place, x, y, ID):
 
 #filtered = map(lambda reihe: filter(lambda x: x !=  False, reihe), map(lambda y: map(lambda x: detectorigin(x), y), world))	
 #origin = filter(lambda element: len(element) > 0, filtered)
-origin2 = list(itertools.chain.from_iterable(map(lambda reihe: filter(lambda x: x !=  False, reihe), map(lambda y: map(lambda x: detectorigin(x, origin[0], origin[1], " 0 "), y), world))))
+origin2 = list(itertools.chain.from_iterable(map(lambda reihe: filter(lambda x: x !=  False, reihe), map(lambda y: map(lambda x: detectorigin(x, origin[0], origin[1], u" \u001b[38;5;10m0 "), y), world))))
 #print filtered
 print origin2
 
