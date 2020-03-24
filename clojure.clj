@@ -19,28 +19,29 @@
   [time
    cst]
   (* (hoch time 2) cst))
+(defn dead-expectation
+  [infected]
+  (* infected (/ 4 100)))
 
-(let [a 10
-      b (+ a 10)
-      c 12]
-  (+ a b c))
+()
 
 (def time 20)
 
 (def first-simulation (promise))
+(def second-simulation (promise))
 
-;;possible scenarios of the virus spreading
-(def no-meassures (Thread. (fn [_]
-                             (let [cst (/ 1 9)
-                                   variation (infected-expectation time cst)
-                                   initialpopulation (:population world)]
-                               (deliver first-simulation (assoc world :infected variation :population (- initialpopulation variation)))))))
-
-(def social-isolating (Thread. (fn [_] (println "t2"))))
-
-(.start no-meassures)
+(let [a first-simulation
+      b second-simulation]
+  (.start (Thread. (fn [] (let [constant (/ 1 9)
+                                infected  (infected-expectation time constant)
+                                dead (dead-expectation infected)]
+                            (deliver a
+                                     (assoc world :infected infected :dead dead))))))
+  (.start (Thread. (fn [] (let [constant (/ 1 4)
+                                infected  (infected-expectation time constant)
+                                dead (dead-expectation infected)]
+                            (deliver b
+                                     (assoc world :infected infected :dead dead)))))))
 
 (deref first-simulation)
-
-(.join no-meassures)  ;;stop everything till t1 finishes and return nil
-
+(deref second-simulation)
