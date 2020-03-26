@@ -23,13 +23,12 @@
   [infected]
   (* infected (/ 4 100)))
 
-()
-
 (def time 20)
 
 (def first-simulation (promise))
 (def second-simulation (promise))
 
+;;The Threads will act independently of the main Thread, but delivering values to the promises declared before.
 (let [a first-simulation
       b second-simulation]
   (.start (Thread. (fn [] (let [constant (/ 1 9)
@@ -41,7 +40,8 @@
                                 infected  (infected-expectation time constant)
                                 dead (dead-expectation infected)]
                             (deliver b
-                                     (assoc world :infected infected :dead dead)))))))
+                                     (assoc world :population (- (:population world) dead) :infected infected :dead dead)))))))
 
+;;Accessing the value in each promise
 (deref first-simulation)
 (deref second-simulation)
