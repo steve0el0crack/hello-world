@@ -40,6 +40,15 @@
           dead (dead-expectation infected)]
       (assoc world :population (- (:population world) dead) :infected infected :dead dead))))
 
-;;Accessing the value in each promise
-(@nomeassures-simulation)
-(@socialdistancing-simulation)
+;;Accessing the value in each future
+(deref nomeassures-simulation)
+(deref socialdistancing-simulation)
+
+;;within ASYNC from clojure, comes the concept of atom.
+(def first-atom (atom {}))
+
+(swap! first-atom (fn [currentvalue] (assoc currentvalue :a 1)))
+
+
+;;macros were made to improve READABILITY and MANTAINENCE of CODE
+(macroexpand '(-> world (nth 1) (nth 1)))
