@@ -25,23 +25,21 @@
 
 (def time 20)
 
-(def first-simulation (promise))
-(def second-simulation (promise))
-
+;;future will declare its own promise and initialize its own Thread and then deliver the resulting value to the promise, that actually is refered by the future with the name you give to it.
 ;;The Threads will act independently of the main Thread, but delivering values to the promises declared before.
-(let [a first-simulation
-      b second-simulation]
-  (.start (Thread. (fn [] (let [constant (/ 1 9)
-                                infected  (infected-expectation time constant)
-                                dead (dead-expectation infected)]
-                            (deliver a
-                                     (assoc world :infected infected :dead dead))))))
-  (.start (Thread. (fn [] (let [constant (/ 1 4)
-                                infected  (infected-expectation time constant)
-                                dead (dead-expectation infected)]
-                            (deliver b
-                                     (assoc world :population (- (:population world) dead) :infected infected :dead dead)))))))
+(def nomeassures-simulation
+  (future
+    (let [constant (/ 1 4)
+          infected  (infected-expectation time constant)
+          dead (dead-expectation infected)]
+      (assoc world :population (- (:population world) dead) :infected infected :dead dead))))
+(def socialdistancing-simulation
+  (future
+    (let [constant (/ 1 9)
+          infected  (infected-expectation time constant)
+          dead (dead-expectation infected)]
+      (assoc world :population (- (:population world) dead) :infected infected :dead dead))))
 
 ;;Accessing the value in each promise
-(deref first-simulation)
-(deref second-simulation)
+(@nomeassures-simulation)
+(@socialdistancing-simulation)
