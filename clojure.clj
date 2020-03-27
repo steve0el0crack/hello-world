@@ -1,5 +1,5 @@
 ;clojure development documentation
-
+(ns esteban.clojure)
 (def world
   {:population 1000
    :infected 0
@@ -25,25 +25,6 @@
 
 (def time 20)
 
-;;future will declare its own promise and initialize its own Thread and then deliver the resulting value to the promise, that actually is refered by the future with the name you give to it.
-;;The Threads will act independently of the main Thread, but delivering values to the promises declared before.
-(def nomeassures-simulation
-  (future
-    (let [constant (/ 1 4)
-          infected  (infected-expectation time constant)
-          dead (dead-expectation infected)]
-      (assoc world :population (- (:population world) dead) :infected infected :dead dead))))
-(def socialdistancing-simulation
-  (future
-    (let [constant (/ 1 9)
-          infected  (infected-expectation time constant)
-          dead (dead-expectation infected)]
-      (assoc world :population (- (:population world) dead) :infected infected :dead dead))))
-
-;;Accessing the value in each future
-(deref nomeassures-simulation)
-(deref socialdistancing-simulation)
-
 ;;within ASYNC from clojure, comes the concept of atom.
 (def first-atom (atom {}))
 (swap! first-atom (fn [currentvalue] (assoc currentvalue :a 1)))
@@ -62,6 +43,41 @@
 
 @counter
 @foo
+
+;;future will declare its own promise and initialize its own Thread and then deliver the resulting value to the promise, that actually is refered by the future with the name you give to it.
+;;The Threads will act independently of the main Thread, but delivering values to the promises declared before.
+(def nomeassures-simulation
+  (future
+    (let [constant (/ 1 4)
+          infected  (infected-expectation time constant)
+          dead (dead-expectation infected)]
+      (assoc world :population (- (:population world) dead) :infected infected :dead dead))))
+(def socialdistancing-simulation
+  (future
+    (let [constant (/ 1 9)
+          infected  (infected-expectation time constant)
+          dead (dead-expectation infected)]
+      (assoc world :population (- (:population world) dead) :infected infected :dead dead))))
+
+;;Accessing the VALUE in each future
+@nomeassures-simulation
+@socialdistancing-simulation
+
+
+(defn compare-worlds
+  [input-world]
+  (map (fn [key] (- (key world) (key input-world))) (keys input-world)))
+
+
+(compare-worlds @nomeassures-simulation)
+
+;;DELAYS Define processes that WILL RUN into another THREAD but will not be inmediatly executed after defining. Here we define a function that creates a DELAY charged with the @VALUE of a simulated-world
+(defn tell-difference [simulated-world] (delay (compare-worlds simulated-world)))
+;;And then the process can be started whenever you want...one must FORCE it!
+(force (tell-difference @socialdistancing-simulation))
+(force (tell-difference @nomeassures-simulation))
+
+
 
 ;;macros were made to improve READABILITY and MANTAINENCE of CODE
 (macroexpand '(-> world (nth 1) (nth 1)))
