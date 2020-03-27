@@ -46,9 +46,22 @@
 
 ;;within ASYNC from clojure, comes the concept of atom.
 (def first-atom (atom {}))
-
 (swap! first-atom (fn [currentvalue] (assoc currentvalue :a 1)))
+;;This concept works completely independently (such as Threads) and therefor are not thought to be synchronised operations. An example of this logic (https://clojure.wladyka.eu/posts/share-state/):
+(def counter (atom 0))
+(def foo (atom 1))
+(defn slow-inc [n]
+  (swap! counter inc)
+  (Thread/sleep 200)
+  (inc n))
 
+(pmap
+  (fn [_]
+    (swap! foo slow-inc))
+  (range 100))
+
+@counter
+@foo
 
 ;;macros were made to improve READABILITY and MANTAINENCE of CODE
 (macroexpand '(-> world (nth 1) (nth 1)))
