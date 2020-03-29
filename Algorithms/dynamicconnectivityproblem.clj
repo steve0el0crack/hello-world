@@ -37,21 +37,40 @@
       (recur ([(rand-int number-of-elements) (rand-int number-of-elements)]))
       output)))
 
-;;now we can start binding our elements in the universe and seeing what happens!
-(map (fn [_]
-       (let [pair (generate-pair)
-             origin (first pair)
-             goal (second pair)]
-         (connect origin goal)))
-     (range number-of-bindings))
+;;now we can start binding our elements in the universe and seeing what happens! (we use pmap in order to make all bindings at once as a single operation, later on when more bindings need to be made it will be very useful... I suppose)
+(pmap (fn [_]
+        (let [pair (generate-pair)
+              origin (first pair)
+              goal (second pair)]
+          (connect origin goal)))
+      (range number-of-bindings))
 
 ;;leting aside the fact that a binding can be applied to the same pair of atoms, we continue defining the other core ideas of the algorithm and problem
 (defn apply-fn-to-all [function]
-  (function (fn [path] (> (count path) 1))
-    (apply vector (map (fn [atom] (first (apply vector (vals @atom)))) universe))))
-(def get-direct-connections (partial apply-fn-to-all filter))
-(def get-unconnected (partial apply-fn-to-all remove))
+  (apply vector
+         (function (fn [atom-value] (> (count (first (vals atom-value))) 1))
+                   (apply vector (map (fn [atom] @atom) universe)))))
+(def get-all-direct-connections (partial apply-fn-to-all filter))
+(def get-all-unconnected (partial apply-fn-to-all remove))
 
-;;The logic implemented in the atoms is very simple and realistic: They cannot see the network they are building with their connections. But we must be able to do that...
-(defn create-network []
-  )
+;;The logic implemented in the atoms is very simple and realistic: They cannot see the network they are building with their connections. But in counterpart, we must be able to do that...
+(defn identify-network [])
+
+(get-all-unconnected)
+(get-all-direct-connections)
+universe
+
+;;In order to adress the question, very directly:
+(defn get-neighbours [index]
+  (first (vals @(nth universe index))))
+
+;;In maps, the key is the key, and in arrays it is its index's, there cannot use contains?
+(defn check-in-unconnected [request]
+  (some (fn [key] (= request key)) (apply keys (get-all-unconnected))))
+
+(defn is-connected? [a b]
+  (if (or (check-in-unconnected a) (check-in-unconnected b))
+    false
+    "Mal sehen"))
+
+(is-connected? 1 1)
