@@ -11,8 +11,6 @@
 ;;at the beginning all the elements in the universe must be unconnected, this may chane and therefore the correct structure is an atom. The difference between them will be the key of the dictionary... the starting index in the universe of the atom.
 (def universe (apply vector (map (fn [index] (atom {index #{index}})) (range number-of-elements))))
 
-
-
 ;;The connection is made in pairs. The question is how do we retain and represent that binding... in the atoms themselves
 (defn connect
   [x y]
@@ -48,10 +46,12 @@
      (range number-of-bindings))
 
 ;;leting aside the fact that a binding can be applied to the same pair of atoms, we continue defining the other core ideas of the algorithm and problem
-(defn get-direct-connections []
-  (filter (fn [path] (> (count path) 1))
-          (apply vector (map (fn [atom] (first (apply vector (vals @atom)))) universe))))
-(get-direct-connections)
+(defn apply-fn-to-all [function]
+  (function (fn [path] (> (count path) 1))
+    (apply vector (map (fn [atom] (first (apply vector (vals @atom)))) universe))))
+(def get-direct-connections (partial apply-fn-to-all filter))
+(def get-unconnected (partial apply-fn-to-all remove))
 
-
-
+;;The logic implemented in the atoms is very simple and realistic: They cannot see the network they are building with their connections. But we must be able to do that...
+(defn create-network []
+  )
