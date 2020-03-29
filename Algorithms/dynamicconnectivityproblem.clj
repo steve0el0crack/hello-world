@@ -56,21 +56,24 @@
 ;;The logic implemented in the atoms is very simple and realistic: They cannot see the network they are building with their connections. But in counterpart, we must be able to do that...
 (defn identify-network [])
 
-(get-all-unconnected)
-(get-all-direct-connections)
-universe
-
 ;;In order to adress the question, very directly:
 (defn get-neighbours [index]
   (first (vals @(nth universe index))))
 
 ;;In maps, the key is the key, and in arrays it is its index's, there cannot use contains?
-(defn check-in-unconnected [request]
-  (some (fn [key] (= request key)) (apply keys (get-all-unconnected))))
+(defn check-in-coll [request coll]
+  (some (fn [key] (= request key)) coll))
 
 (defn is-connected? [a b]
-  (if (or (check-in-unconnected a) (check-in-unconnected b))
-    false
-    "Mal sehen"))
+  (let [unconnected (flatten (map keys (get-all-unconnected)))
+        connected (flatten (map keys (get-all-direct-connections)))
+        first a
+        second b]
+    (if (= '(nil true nil true) (for [ atom [first second] coll [unconnected connected]] (check-in-coll atom coll)))
+      (let [chosen (rand-nth [first second])]
+        (get-neighbours chosen))
+      "Not connected")))
 
-(is-connected? 1 1)
+
+(is-connected? 3 2)
+
