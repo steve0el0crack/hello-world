@@ -64,16 +64,20 @@
 (defn check-in-coll [request coll]
   (some (fn [key] (= request key)) coll))
 
-(defn is-connected? [a b]
+(defn is-connected?
+  [first-index
+   second-index]
   (let [unconnected (flatten (map keys (get-all-unconnected)))
-        connected (flatten (map keys (get-all-direct-connections)))
-        first a
-        second b]
-    (if (= '(nil true nil true) (for [ atom [first second] coll [unconnected connected]] (check-in-coll atom coll)))
-      (let [chosen (rand-nth [first second])]
-        (get-neighbours chosen))
-      "Not connected")))
+        connected (flatten (map keys (get-all-direct-connections)))]
+    (if (= '(nil true nil true) (for [ atom [first-index second-index] coll [unconnected connected]]
+                                  (check-in-coll atom coll)))
+      (if (= nil (check-in-coll first-index (first (vals @(nth universe second-index)))))
+        "Not direct connected, but both to a network"
+        "Direct connection")
+      "Not connected at all")))
+
+(is-connected? 3 1)
+(get-all-direct-connections)
 
 
-(is-connected? 3 2)
 
