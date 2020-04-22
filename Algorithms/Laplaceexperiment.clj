@@ -1,6 +1,8 @@
 (ns Algorithms.Laplaceexperiment)
 
-;;Das Problem war: Ein Lego-Achter (bzw. ein Laplace-Wuerfel) wird mehrmals geworfen. Wenn man beim ersten Wurf die 1 erhaelt, muss man abbrechen [...] Man ist "duchgekommen" wenn man auch beim 6. Wurf keine 6 erwischt. A)Berechnen Sie die Wahrcheinlichkeit fuer ein Durchkommen bei einem Lego-Achter. B) Fuhren sie das Experiment mit dem Lego Ahcter je 50-mal durch, Wie oft sind Sie durchgekommen? Vergleichen Sie mit der berechneten Wahrscheinlichkeit. C) Berechnen Sie die Wahrscheinlichkeitsverteilung fuer die Versuchsdauer, die zwischen 1 und 6 Wuerfen liegen muss -Ueberpruefen Sie, ob deren Erwartungswert in der Mitte bei 3,5 liegt. 
+;;Mathe EPH Buch S.153
+
+;;Aufgabe 8) Ein Lego-Achter (bzw. ein Laplace-Wuerfel) wird mehrmals geworfen. Wenn man beim ersten Wurf die 1 erhaelt, muss man abbrechen [...] Man ist "duchgekommen" wenn man auch beim 6. Wurf keine 6 erwischt. A)Berechnen Sie die Wahrcheinlichkeit fuer ein Durchkommen bei einem Lego-Achter. B) Fuhren sie das Experiment mit dem Lego Ahcter je 50-mal durch, Wie oft sind Sie durchgekommen? Vergleichen Sie mit der berechneten Wahrscheinlichkeit. C) Berechnen Sie die Wahrscheinlichkeitsverteilung fuer die Versuchsdauer, die zwischen 1 und 6 Wuerfen liegen muss -Ueberpruefen Sie, ob deren Erwartungswert in der Mitte bei 3,5 liegt. 
 
 (def Ergebnissmenge (range 1 7))  ;;Ein Wuerfel hat nur 6 moegliche Ergebnisse
 
@@ -67,3 +69,35 @@
         f (frequencies Versuchsdauer)]
     (float (reduce + (map (fn [a b] (* a (/ b n))) (keys f) (vals f))))))
 (Erwartungswert-von-Versuchdauer 100)
+
+
+;;Aufgabe 10) Ueberpruefen Sie ihre Verallgemeinerung an einem selbst gewaehlten Zahlenbeispiel durch eine Rechnung oder eine Simulation.
+
+;;Diese Simulation sind in Grunde genommen nur Spieler, die beim werfen eine bestimmte Wahrscheinlichkeit haben, um zu treffen oder nicht. Dann wird die Frage untersucht, welche Anzahl von Treffen sollten wir am Ende erwarten.
+
+(defn round-to [a x]
+  (.setScale (bigdec x) a java.math.RoundingMode/HALF_EVEN))  ;;using java.interop for better and correct rounding
+
+(defn spieler []  ;;they are gonna have 2 probabilities, one for scoring a goal; and the other for failing (1 and 0 respectly)
+  {1 (round-to 1 (rand)) 0 (round-to 1 (rand))})
+(defn team [n]  ;;create a team of n players
+  (map (fn [_] (spieler)) (range n)))
+
+(defn throw []  ;;this functions aims to give us a history that we can read as the throws that been made
+  ())
+
+;;Seite 153 Aufgabe 8
+(defn by? [a x]
+  (= (rem a x) 0))
+
+(defn by-several?
+  [conditions]
+  (map (fn [x]
+         (let [x-by? (partial by? x)]
+           (every? (fn [b] b) (map (fn [c] (x-by? c)) conditions))))
+       (range 1 11)))
+
+(by-several? [2 3])
+
+
+#(* 2 %1)
