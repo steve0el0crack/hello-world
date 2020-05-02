@@ -53,9 +53,6 @@
 (def get-all-direct-connections (partial apply-fn-to-all filter))
 (def get-all-unconnected (partial apply-fn-to-all remove))
 
-;;The logic implemented in the atoms is very simple and realistic: They cannot see the network they are building with their connections. But in counterpart, we must be able to do that...
-(defn identify-network [])
-
 ;;In order to adress the question, very directly:
 (defn get-neighbours [index]
   (first (vals @(nth universe index))))
@@ -63,6 +60,14 @@
 ;;In maps, the key is the key, and in arrays it is its index's, there cannot use contains?
 (defn check-in-coll [request coll]
   (some (fn [key] (= request key)) coll))
+
+;;I will define a separate process for searching an element in a network, with an starting point.
+(defn search-in-network
+  [request
+   start-point]
+  (loop [initial-stack (get-neighbours start-point)]
+    (if (check-in-coll request initial-stack)
+      "founded")))
 
 (defn is-connected?
   [first-index
@@ -72,12 +77,40 @@
     (if (= '(nil true nil true) (for [ atom [first-index second-index] coll [unconnected connected]]
                                   (check-in-coll atom coll)))
       (if (= nil (check-in-coll first-index (first (vals @(nth universe second-index)))))
-        "Not direct connected, but both to a network"
+        ;;(search-in-network a b)
         "Direct connection")
       "Not connected at all")))
 
-(is-connected? 3 1)
+(is-connected? 1 3)
 (get-all-direct-connections)
+(get-all-unconnected)
+universe
 
 
+(def a (agent []))
+(send a conj 1)
 
+
+;;***************************** UI ***********************************************
+;;I am gonna show how these graph will be building, just like a simulation.
+
+(import
+ '(java.awt Dimension Color Graphics)
+ '(javax.swing JPanel JFrame)
+ '(java.awt.image BufferedImage))
+
+(defn render [g]
+  (let [img (new BufferedImage 300 300 (. BufferedImage TYPE_INT_ARGB))
+        bg (. img (getGraphics))]  ;;we get the Graphcs2D object
+    (doto bg
+      (.setColor (. Color blue))
+      (.fillRect 0 0 (. img (getWidth)) (. img (getHeight))))
+    (. g (drawImage img 0 0 nil))  ;;the img generated and modified is gonna be USED BEFORE FINISHING
+    (. bg (dispose)))) ;;for efficiency, programmers should call *dispose* when finished using a Graphics object.
+
+(def panel (doto (proxy [JPanel] []
+                        (paint [g] (render g)))  ;;paint will be called automatically right after the object was initiallized
+             (.setPreferredSize (new Dimension 300 300))))
+(def frame (doto (new JFrame) (.add panel) .pack .show))
+
+(. panel (repaint))  ;;for future paintings on the JPanel
