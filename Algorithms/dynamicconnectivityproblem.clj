@@ -76,7 +76,7 @@
         connected (flatten (map keys (get-all-direct-connections)))]
     (if (= '(nil true nil true) (for [ atom [first-index second-index] coll [unconnected connected]]
                                   (check-in-coll atom coll)))
-      (if (= nil (check-in-coll first-index (first (vals @(nth universe second-index)))))
+      (if (check-in-coll first-index (first (vals @(nth universe second-index))))
         ;;(search-in-network a b)
         "Direct connection")
       "Not connected at all")))
@@ -84,7 +84,7 @@
 (is-connected? 1 3)
 (get-all-direct-connections)
 (get-all-unconnected)
-universe
+(map (fn [node] @node) universe)
 
 
 (def a (agent []))
@@ -97,20 +97,25 @@ universe
 (import
  '(java.awt Dimension Color Graphics)
  '(javax.swing JPanel JFrame)
- '(java.awt.image BufferedImage))
+ '(java.awt.image BufferedImage)
+ '(java.awt.geom Ellipse2D))
+
+;;I want to first see the N elements isolated and not connected at all. And then, as time comes; see how the connections will be builded.
+
 
 (defn render [g]
   (let [img (new BufferedImage 300 300 (. BufferedImage TYPE_INT_ARGB))
         bg (. img (getGraphics))]  ;;we get the Graphcs2D object
     (doto bg
       (.setColor (. Color blue))
-      (.fillRect 0 0 (. img (getWidth)) (. img (getHeight))))
+      (.draw (new () (50, 50, 50, 50))))
     (. g (drawImage img 0 0 nil))  ;;the img generated and modified is gonna be USED BEFORE FINISHING
     (. bg (dispose)))) ;;for efficiency, programmers should call *dispose* when finished using a Graphics object.
 
 (def panel (doto (proxy [JPanel] []
                         (paint [g] (render g)))  ;;paint will be called automatically right after the object was initiallized
              (.setPreferredSize (new Dimension 300 300))))
+
 (def frame (doto (new JFrame) (.add panel) .pack .show))
 
 (. panel (repaint))  ;;for future paintings on the JPanel
