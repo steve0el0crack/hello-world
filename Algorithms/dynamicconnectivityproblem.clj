@@ -1,57 +1,54 @@
-(ns Algorithms.dynamicconnectivityproblem)
+(ns Algorithms.dynamicconnectivityproblem)  
 
-(def number-of-elements 10)
+(def number-of-nodes 10)
 (def number-of-bindings 5)
 
+;;the most important condition for the intial process of binding is wether all nodes are connected or not, that will the process flag.
 (defn all-connected? [current-universe]
-  (if (= (count (filter (fn [atom] (= (count @atom) 1)) current-universe)) 0)
+  (if (= (count (filter (fn [atom]
+                          (= (count @atom) 1))
+                        current-universe))
+         0)
     true
     false))
 
-;;at the beginning all the elements in the universe must be unconnected, this may chane and therefore the correct structure is an atom. The difference between them will be the key of the dictionary... the starting index in the universe of the atom.
-(def universe (apply vector (map (fn [index] (atom {index #{index}})) (range number-of-elements))))
+;;at the beginning all the elements in the universe must be unconnected, this may change and therefore the correct structure is an atom. The difference between them will be the key of the dictionary... the starting index in the universe of the atom.
+(def universe
+  (apply vector
+         (map (fn [index]
+                (atom {index #{index}})) ;;Each Node has its own ID and a SET as value.
+              (range number-of-nodes))))
+
+;;the connections will be randomly made, and only two rules must be followed: An element cannot connect to itself and the same connections should not be repeated. The SET structure makes it easy!
 
 ;;The connection is made in pairs. The question is how do we retain and represent that binding... in the atoms themselves
-(defn connect
-  [x y]
-  (let [origin (nth universe x)
-        destiny (nth universe y)
-        i x
-        f y]
-    (map (fn [data]
-           (let [atom (first data)
-                 key  (second data)
-                 new-val (nth data 2)]
-             (swap! atom
-                    (fn [atom-value]
-                      (update atom-value key
-                              (fn [path]
-                                (conj path new-val)))))))
-         [[origin i f]
-          [destiny f i]])))
-
-;;but the connections have 2 conditions: An element cannot connect to itself, and a the operation to connect a pair should not be repeated for the same pair.
-(defn generate-pair []
-  (loop [output [(rand-int number-of-elements) (rand-int number-of-elements)]]
-    (if (= (first output) (second output))
-      (recur ([(rand-int number-of-elements) (rand-int number-of-elements)]))
-      output)))
+(defn connect [x y]
+  (letfn [(step [a b]
+            (swap! (nth universe a)
+                   (fn [c]
+                     (update c a (fn [v]
+                                   (conj v b))))))]
+    (map step [x y] [y x])))
 
 ;;now we can start binding our elements in the universe and seeing what happens! (we use pmap in order to make all bindings at once as a single operation, later on when more bindings need to be made it will be very useful... I suppose)
+
 (pmap (fn [_]
-        (let [pair (generate-pair)
-              origin (first pair)
-              goal (second pair)]
-          (connect origin goal)))
+        (let [a (rand-int number-of-nodes)
+              b (rand-int number-of-nodes)]
+          (connect a b)))
       (range number-of-bindings))
 
-;;leting aside the fact that a binding can be applied to the same pair of atoms, we continue defining the other core ideas of the algorithm and problem
-(defn apply-fn-to-all [function]
+;;leting aside the fact that a binding can be applied to the same pair of atoms, we continue defining the other core ideas of the algorithm and problem:
+
+(defn condition [function]
   (apply vector
-         (function (fn [atom-value] (> (count (first (vals atom-value))) 1))
-                   (apply vector (map (fn [atom] @atom) universe)))))
-(def get-all-direct-connections (partial apply-fn-to-all filter))
-(def get-all-unconnected (partial apply-fn-to-all remove))
+         (function (fn [a] (> (count (first (vals a))) 1))  ;;the condition is clear: The number of nodes connected to it.
+                   (for [a universe] @a))))
+
+(def connected (partial condition filter))
+(def unconnected (partial condition remove))
+
+(connected)
 
 ;;In order to adress the question, very directly:
 (defn get-neighbours [index]
@@ -102,20 +99,49 @@
 
 ;;I want to first see the N elements isolated and not connected at all. And then, as time comes; see how the connections will be builded.
 
+(defn render-node
+  [bg x y]
+  (doto bg
+    (.setColor (. Color blue))
+    (.fillOval x y 30 30)))
+
+(defn render-connection
+  [bg n1 n2]
+  (doto bg
+    (.setColor (. Color black))
+    (.drawLine (+ (first n1) 15) (+ (second n1) 15) (+ (first n2) 15) (+ (second n2) 15))))
+
+(fn
+  [bg data]
+  (let [parent (first (keys data))
+        childs (disj parent (first (vals data)))]
+    (map (fn [c]
+           (render-connection bg (nth ps i) x))
+         childs)))
 
 (defn render [g]
-  (let [img (new BufferedImage 300 300 (. BufferedImage TYPE_INT_ARGB))
-        bg (. img (getGraphics))]  ;;we get the Graphcs2D object
-    (doto bg
-      (.setColor (. Color blue))
-      (.draw (new () (50, 50, 50, 50))))
+  (let [img (new BufferedImage 800 800 (. BufferedImage TYPE_INT_ARGB))
+        bg (. img (getGraphics)) ;;we get the Graphcs2D object
+        width (. img (getWidth))
+        height (. img (getHeight))
+        ps (for [i (range (count universe))] [(rand-int width) (rand-int height)])]  
+    (dorun  ;;this is very important... don't completely understand why.
+     (for [i ps]
+       (render-node bg (first i) (second i))))
+    (dorun
+     (for [data (connected)]
+       (render-connection bg (nth ps (first (keys node))) (nth ps 2))))
     (. g (drawImage img 0 0 nil))  ;;the img generated and modified is gonna be USED BEFORE FINISHING
-    (. bg (dispose)))) ;;for efficiency, programmers should call *dispose* when finished using a Graphics object.
+    (. bg (dispose)))) ;; Via this line, the function render will return the manipulated "image".
 
 (def panel (doto (proxy [JPanel] []
                         (paint [g] (render g)))  ;;paint will be called automatically right after the object was initiallized
-             (.setPreferredSize (new Dimension 300 300))))
+             (.setPreferredSize (new Dimension 800 800))))
 
 (def frame (doto (new JFrame) (.add panel) .pack .show))
 
 (. panel (repaint))  ;;for future paintings on the JPanel
+
+(first (keys {:a 2}))
+
+(map vector [1] [2])
