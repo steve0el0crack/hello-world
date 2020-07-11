@@ -123,6 +123,41 @@
   (define (step n) (= (my-func n) (my-func-iter n)))
   (map step (range n)))
 
+;; Exercise 1.12 page 42:
+;; Programming Pascal's triangle (+- normal distribution) by means of a recursive process.
+;; Knowing that the edges are always 1, and each number is the sum of the two above:
+;;
+;;                    1
+;;                  1   1
+;;                1   2   1
+;;              1   3   3   1
+;;            1   4   6   4   1
+
+;; Here I found a problem with the statement: Am I suposse to construct the complete triangle from a single recursive process?
+;; In that case I couldn't solve the problem and maybe in the future with some more experience (after reading Knuth or a little bit more of mathematic) I would be able to come up with something!
+;; But in order to apply the concepts explained in the chapter and make sense of this exercise, I searched for another approach to this problem in internet: Finding 1 number regarding its position in an imaginary "table"
+;;
+;; https://stackoverflow.com/questions/409784/whats-the-simplest-way-to-print-a-java-array
+;;              0  1  2  3  4
+;; Row null     1 
+;; Row one      1  1 
+;; Row two      1  2  1
+;; Row three    1  3  3  1
+;; Row four     1  4  6  4  1  ...
+;;
+;; In this system, I certainly could be able to say (pascal x y) and get the corresponding number.
+
+;; As usual, in a recursive process there is going to be an expression that will expand till some conditions were to be met and then, a process of compresion follows.
+(define (pascal x y)
+  (cond
+    ((or (< x 0) (< y 0)) 0)  ;; my first condition means that if I want to calculate for example (pascal 0 4), then I would need (+ (pascal 0 3) (pascal -1 3)) and an infinite loop will be initiated till -infinity...
+    ((and (= x 0) (= y 0)) 1)  ;; this is much like my construction block, since every number will be ultimately just a sum of 1's.
+    (else (+
+           (pascal x (- y 1))  ;; the element direct above the number I am searching for.
+           (pascal (- x 1) (- y 1))  ;; the other summand.
+           ))  ;; here occurs the recusiveness that actually creates a tree-like process in which the number of divions follows the 2^n growth.
+    ))
+
 
 
 
